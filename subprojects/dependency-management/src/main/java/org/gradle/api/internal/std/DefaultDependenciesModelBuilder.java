@@ -136,7 +136,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
         MutableVersionConstraint versionBuilder = new DefaultMutableVersionConstraint("");
         versionSpec.execute(versionBuilder);
         ImmutableVersionConstraint version = versionConstraintInterner.intern(DefaultImmutableVersionConstraint.of(versionBuilder));
-        DependencyModel model = new DependencyModel(intern(group), intern(name), version);
+        DependencyModel model = new DependencyModel(intern(group), intern(name), null, version);
         Supplier<DependencyModel> previous = dependencies.put(intern(alias), () -> model);
         if (previous != null) {
             LOGGER.warn("Duplicate entry for alias '{}': {} is replaced with {}", alias, previous.get(), model);
@@ -214,7 +214,7 @@ public class DefaultDependenciesModelBuilder implements DependenciesModelBuilder
             if (constraint == null) {
                 throw new InvalidUserDataException("Referenced version '" + versionRef + "' doesn't exist on dependency " + group + ":" + name);
             }
-            return new DependencyModel(group, name, constraint);
+            return new DependencyModel(group, name, versionRef, constraint);
         }
     }
 }
