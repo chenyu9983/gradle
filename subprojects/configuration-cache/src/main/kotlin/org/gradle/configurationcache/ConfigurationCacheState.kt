@@ -47,6 +47,7 @@ import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
+import org.gradle.internal.composite.IncludedRootBuild
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.serialize.Decoder
@@ -216,19 +217,22 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultWriteContext.writeIncludedBuildState(includedBuild: IncludedBuild) {
-        val buildState = includedBuild as IncludedBuildState
-        val includedGradle = buildState.configuredBuild
-        val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
-        val startParameterTaskNames = includedGradle.startParameter.taskNames
-        buildDefinition.run {
-            writeString(name!!)
-            writeFile(buildRootDir)
-            write(fromBuild)
-            writeStrings(startParameterTaskNames)
+        if (includedBuild is IncludedBuildState) {
+            val includedGradle = includedBuild.configuredBuild
+            val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
+            val startParameterTaskNames = includedGradle.startParameter.taskNames
+            buildDefinition.run {
+                writeString(name!!)
+                writeFile(buildRootDir)
+                write(fromBuild)
+                writeStrings(startParameterTaskNames)
+            }
+            includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
+                stateFileFor(buildDefinition)
+            )
+        } else {
+            assert(includedBuild is IncludedRootBuild)
         }
-        includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
-            stateFileFor(buildDefinition)
-        )
     }
 
     private
