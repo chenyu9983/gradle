@@ -31,7 +31,7 @@ class CompositeBuildIncludeCycleIntegrationTest extends AbstractCompositeBuildIn
         includedBuilds << buildC
     }
 
-    @ToBeFixedForConfigurationCache(because = "configuration cache serialization issue")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "two included builds can include each other"() {
         when:
         buildB.settingsFile << "includeBuild '../buildC'"
